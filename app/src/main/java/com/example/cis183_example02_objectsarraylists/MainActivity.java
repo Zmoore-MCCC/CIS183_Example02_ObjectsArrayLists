@@ -1,12 +1,16 @@
 package com.example.cis183_example02_objectsarraylists;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +35,11 @@ public class MainActivity extends AppCompatActivity
 
     ArrayList<Employee> listOfEmployees;
 
+    TextView tv_j_errorMsg;
+    TextView tv_j_usernameError;
+
+    boolean validUsername = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -39,15 +48,21 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         //setup GUI and Java connection
-        et_j_uName        = findViewById(R.id.et_v_username);
-        et_j_fName        = findViewById(R.id.et_v_firstname);
-        et_j_lName        = findViewById(R.id.et_v_lastname);
-        et_j_email        = findViewById(R.id.et_v_email);
-        btn_j_register    = findViewById(R.id.btn_v_register);
-        lv_j_employeeList = findViewById(R.id.lv_v_listOfUsers);
-        sp_j_departments  = findViewById(R.id.sp_v_departments);
+        et_j_uName         = findViewById(R.id.et_v_username);
+        et_j_fName         = findViewById(R.id.et_v_firstname);
+        et_j_lName         = findViewById(R.id.et_v_lastname);
+        et_j_email         = findViewById(R.id.et_v_email);
+        btn_j_register     = findViewById(R.id.btn_v_register);
+        lv_j_employeeList  = findViewById(R.id.lv_v_listOfUsers);
+        sp_j_departments   = findViewById(R.id.sp_v_departments);
+        tv_j_errorMsg      = findViewById(R.id.tv_v_errorMsg);
+        tv_j_usernameError = findViewById(R.id.tv_v_usernameError);
+
+        //set the error message to invisible
+        tv_j_errorMsg.setVisibility(View.INVISIBLE);
 
         registerButtonClickEvent();
+        userNameKeyEventListener();
         //how to resize array:
         //1. copy components (element by element) to new temp array.  temp array will be the size of old array
         //2. resize old array
@@ -71,27 +86,88 @@ public class MainActivity extends AppCompatActivity
 //                et_j_lName.setText("Moore");
 //                et_j_email.setText("zmoore@gmail.com");
                 addEmployeeToList();
+
+            }
+        });
+    }
+
+    private void userNameKeyEventListener()
+    {
+        et_j_uName.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2)
+            {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2)
+            {
+                //Log.d("Text changing: " , "User is typing into textbox");
+                validUsername = validUsername(et_j_uName.getText().toString());
+
+                if(validUsername)
+                {
+                    //no error message
+                    tv_j_usernameError.setText("Username");
+                    tv_j_usernameError.setTextColor(Color.BLACK);
+                }
+                else
+                {
+                    //error message
+                    tv_j_usernameError.setText("Error: username already exists");
+                    tv_j_usernameError.setTextColor(Color.RED);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
             }
         });
     }
 
     private void addEmployeeToList()
     {
-        //create a new employee object
-        Employee employeeToAdd = new Employee();
 
-        //fill data into the new employee object
-        //get the information for the textboxes
-        employeeToAdd.setUsername(et_j_uName.getText().toString());
-        employeeToAdd.setFname(et_j_fName.getText().toString());
-        employeeToAdd.setLname(et_j_lName.getText().toString());
-        employeeToAdd.setEmail(et_j_email.getText().toString());
+        if(!et_j_uName.getText().toString().isEmpty() && !et_j_fName.getText().toString().isEmpty() && !et_j_lName.getText().toString().isEmpty() && !et_j_email.getText().toString().isEmpty())
+        {
+            //create a new employee object
+            Employee employeeToAdd = new Employee();
 
-        //add the new employee to our list of employees
-        listOfEmployees.add(employeeToAdd);
+            //fill data into the new employee object
+            //get the information for the textboxes
+            employeeToAdd.setUsername(et_j_uName.getText().toString());
+            employeeToAdd.setFname(et_j_fName.getText().toString());
+            employeeToAdd.setLname(et_j_lName.getText().toString());
+            employeeToAdd.setEmail(et_j_email.getText().toString());
 
-        //testing purposes only
-        listAllEmployeeData();
+            //add the new employee to our list of employees
+            listOfEmployees.add(employeeToAdd);
+
+            //testing purposes only
+            //listAllEmployeeData();
+
+            Log.d("User added: ", "The user was added to the list");
+            tv_j_errorMsg.setVisibility(View.INVISIBLE);
+            clearTextboxes();
+        }
+        else
+        {
+            Log.d("Error: ", "Error you did not fill out the entire form");
+            //make the error message visible
+            tv_j_errorMsg.setVisibility(View.VISIBLE);
+        }
+
+    }
+
+    private void clearTextboxes()
+    {
+        et_j_uName.setText("");
+        et_j_fName.setText("");
+        et_j_lName.setText("");
+        et_j_email.setText("");
     }
     //testing purposes only
     private void listAllEmployeeData()
@@ -100,5 +176,18 @@ public class MainActivity extends AppCompatActivity
         {
             Log.d("fname: ", listOfEmployees.get(i).getFname());
         }
+    }
+
+    private boolean validUsername(String u)
+    {
+        for(Employee emp : listOfEmployees)
+        {
+            if(emp.getUsername().equals(u))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
